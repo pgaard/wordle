@@ -20,12 +20,15 @@ const App: React.FC = () => {
 
     useEffect(() => {
         if (isWon) {
-            confetti({
-                particleCount: 150,
-                spread: 70,
-                origin: { y: 0.6 },
-                colors: ['#6aaa64', '#c9b458', '#787c7e']
-            });
+            const timeout = setTimeout(() => {
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#6aaa64', '#c9b458', '#787c7e']
+                });
+            }, 2000); // Wait for the 2s total reveal animation (last tile finishes at 1.8s)
+            return () => clearTimeout(timeout);
         }
     }, [isWon]);
 

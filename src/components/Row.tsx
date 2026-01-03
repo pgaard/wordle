@@ -28,6 +28,7 @@ const Row: React.FC<Props> = ({ guess, currentGuess, solution, isRevealed }) => 
                         value={letter}
                         status={getLetterStatus(letter, i)}
                         delay={i * 300}
+                        isRevealing={isRevealed}
                     />
                 ))}
             </div>
