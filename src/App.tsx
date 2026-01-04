@@ -61,7 +61,7 @@ const App: React.FC = () => {
     }
 
     return (
-        <div id="root">
+        <>
             <header>
                 <h1>Wordle</h1>
             </header>
@@ -101,7 +101,7 @@ const App: React.FC = () => {
                     statuses={getStatuses()}
                 />
             </div>
-        </div>
+        </>
     );
 };
 

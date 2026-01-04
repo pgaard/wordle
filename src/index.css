@@ -18,14 +18,13 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  overflow: hidden;
+  height: 100dvh;
 }
 
 #root {
   width: 100%;
   max-width: 500px;
-  height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
 }
@@ -49,8 +48,8 @@ header h1 {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: min(20px, 2vh) 0;
-  overflow: hidden;
+
+
 }
 
 /* Grid Styles */
