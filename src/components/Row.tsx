@@ -1,6 +1,6 @@
 import React from 'react';
 import Tile from './Tile';
-import { LetterState } from '../hooks/useGameState';
+import { LetterState, getGuessStatuses } from '../utils/gameLogic';
 
 interface Props {
     guess?: string;
@@ -10,12 +10,7 @@ interface Props {
 }
 
 const Row: React.FC<Props> = ({ guess, currentGuess, solution, isRevealed }) => {
-    const getLetterStatus = (letter: string, index: number): LetterState => {
-        if (!solution || !guess) return 'empty';
-        if (solution[index] === letter) return 'correct';
-        if (solution.includes(letter)) return 'present';
-        return 'absent';
-    };
+    const guessStatuses = guess && solution ? getGuessStatuses(guess, solution) : [];
 
     const tiles = Array(5).fill('');
 
@@ -26,7 +21,7 @@ const Row: React.FC<Props> = ({ guess, currentGuess, solution, isRevealed }) => 
                     <Tile
                         key={i}
                         value={letter}
-                        status={getLetterStatus(letter, i)}
+                        status={guessStatuses[i]}
                         delay={i * 300}
                         isRevealing={isRevealed}
                     />

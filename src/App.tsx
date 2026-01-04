@@ -1,10 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Grid from './components/Grid';
 import Keyboard from './components/Keyboard';
+import Analysis from './components/Analysis';
 import { useGameState } from './hooks/useGameState';
 import confetti from 'canvas-confetti';
 
 const App: React.FC = () => {
+    const [view, setView] = useState<'game' | 'analysis'>('game');
     const {
         guesses,
         currentGuess,
@@ -33,6 +35,8 @@ const App: React.FC = () => {
     }, [isWon]);
 
     useEffect(() => {
+        if (view !== 'game') return;
+
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.ctrlKey || e.metaKey || e.altKey) return;
 
@@ -47,7 +51,17 @@ const App: React.FC = () => {
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [onEnter, onDelete, onChar]);
+    }, [onEnter, onDelete, onChar, view]);
+
+    if (view === 'analysis') {
+        return (
+            <Analysis
+                guesses={guesses}
+                solution={solution}
+                onBack={() => setView('game')}
+            />
+        );
+    }
 
     return (
         <div id="root">
@@ -56,7 +70,7 @@ const App: React.FC = () => {
             </header>
 
             <div className="game-container">
-                <div style={{ height: '40px', textAlign: 'center', paddingTop: '10px' }}>
+                <div style={{ minHeight: '40px', textAlign: 'center', paddingTop: '10px' }}>
                     {message && (
                         <div style={{
                             background: 'white',
@@ -70,6 +84,14 @@ const App: React.FC = () => {
                         }}>
                             {message}
                         </div>
+                    )}
+                    {isGameOver && !message && (
+                        <button
+                            className="analysis-link"
+                            onClick={() => setView('analysis')}
+                        >
+                            View Game Analysis →
+                        </button>
                     )}
                 </div>
 

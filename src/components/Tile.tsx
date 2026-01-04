@@ -1,5 +1,5 @@
 import React from 'react';
-import { LetterState } from '../hooks/useGameState';
+import { LetterState } from '../utils/gameLogic';
 
 interface Props {
     value?: string;

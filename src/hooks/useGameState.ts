@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getWordOfTheDay, isValidWord } from '../utils/wordUtils';
-
-export type LetterState = 'correct' | 'present' | 'absent' | 'empty';
+import { getGuessStatuses, LetterState } from '../utils/gameLogic';
 
 export const useGameState = () => {
     const [solution] = useState(getWordOfTheDay());
@@ -44,6 +43,7 @@ export const useGameState = () => {
             setIsWon(true);
             setIsGameOver(true);
             setMessage('Splendid!');
+            setTimeout(() => setMessage(''), 2500);
         } else if (newGuesses.length === 6) {
             setIsGameOver(true);
             setMessage(solution.toUpperCase());
@@ -54,22 +54,15 @@ export const useGameState = () => {
         const statuses: { [key: string]: LetterState } = {};
 
         guesses.forEach((guess) => {
-            const splitGuess = guess.split('');
-            const splitSolution = solution.split('');
-
-            splitGuess.forEach((letter, i) => {
-                if (!splitSolution.includes(letter)) {
-                    if (!statuses[letter]) statuses[letter] = 'absent';
-                    return;
-                }
-
-                if (letter === splitSolution[i]) {
+            const guessStatuses = getGuessStatuses(guess, solution);
+            guess.split('').forEach((letter, i) => {
+                const status = guessStatuses[i];
+                if (status === 'correct') {
                     statuses[letter] = 'correct';
-                    return;
-                }
-
-                if (statuses[letter] !== 'correct') {
+                } else if (status === 'present' && statuses[letter] !== 'correct') {
                     statuses[letter] = 'present';
+                } else if (status === 'absent' && !statuses[letter]) {
+                    statuses[letter] = 'absent';
                 }
             });
         });
