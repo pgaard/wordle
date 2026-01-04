@@ -6,8 +6,8 @@
   --color-bg: #121213;
   --color-text: #ffffff;
   --color-key-bg: #818384;
-  --tile-size: 62px;
-  --tile-gap: 5px;
+  --tile-size: min(62px, 8vh, 14vw);
+  --tile-gap: min(5px, 0.6vh);
 }
 
 body {
@@ -38,7 +38,7 @@ header {
 
 header h1 {
   margin: 0;
-  font-size: 36px;
+  font-size: min(36px, 4vh);
   letter-spacing: 2px;
   text-transform: uppercase;
   font-weight: 700;
@@ -49,7 +49,8 @@ header h1 {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 20px 0;
+  padding: min(20px, 2vh) 0;
+  overflow: hidden;
 }
 
 /* Grid Styles */
@@ -75,7 +76,7 @@ header h1 {
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 2rem;
+  font-size: calc(var(--tile-size) * 0.5);
   font-weight: bold;
   text-transform: uppercase;
   user-select: none;
@@ -222,7 +223,7 @@ header h1 {
 .key-row {
   display: flex;
   justify-content: center;
-  margin-bottom: 8px;
+  margin-bottom: min(8px, 1vh);
   touch-action: manipulation;
 }
 
@@ -231,8 +232,8 @@ header h1 {
   font-weight: bold;
   border: 0;
   padding: 0;
-  margin: 0 6px 0 0;
-  height: 58px;
+  margin: 0 min(6px, 1vw) 0 0;
+  height: min(58px, 6vh);
   border-radius: 4px;
   cursor: pointer;
   background-color: var(--key-bg);
@@ -244,6 +245,7 @@ header h1 {
   text-transform: uppercase;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0.3);
   transition: background-color 0.1s linear;
+  font-size: min(1.2rem, 2vh);
 }
 
 .key:last-child {
