@@ -2,6 +2,12 @@ import { useState, useEffect } from 'react';
 import { getWordOfTheDay, isValidWord } from '../utils/wordUtils';
 import { getGuessStatuses, LetterState } from '../utils/gameLogic';
 
+const STORAGE_KEY = 'wordle-state';
+
+const getTodayString = () => {
+    return new Date().toISOString().split('T')[0];
+};
+
 export const useGameState = () => {
     const [solution] = useState(getWordOfTheDay());
     const [guesses, setGuesses] = useState<string[]>([]);
@@ -11,6 +17,40 @@ export const useGameState = () => {
     const [isRevealing, setIsRevealing] = useState(false);
     const [isWon, setIsWon] = useState(false);
     const [message, setMessage] = useState('');
+
+    // Load state on mount
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('word')) return;
+
+        const savedState = localStorage.getItem(STORAGE_KEY);
+        if (savedState) {
+            const { guesses: savedGuesses, date, isWon: savedIsWon, isGameOver: savedIsGameOver } = JSON.parse(savedState);
+            if (date === getTodayString()) {
+                setGuesses(savedGuesses);
+                setRevealedGuessesCount(savedGuesses.length);
+                setIsWon(savedIsWon);
+                setIsGameOver(savedIsGameOver);
+            } else {
+                localStorage.removeItem(STORAGE_KEY);
+            }
+        }
+    }, []);
+
+    // Save state on changes
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('word')) return;
+
+        if (guesses.length > 0 || isGameOver) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                guesses,
+                date: getTodayString(),
+                isWon,
+                isGameOver
+            }));
+        }
+    }, [guesses, isWon, isGameOver]);
 
     const onChar = (char: string) => {
         if (currentGuess.length < 5 && !isGameOver && !isRevealing) {
