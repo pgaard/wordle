@@ -408,6 +408,54 @@ header h1 {
   font-family: monospace;
 }
 
+/* Tooltip styles */
+.remaining-count-container {
+  position: relative;
+  display: inline-block;
+  cursor: help;
+}
+
+.remaining-tooltip {
+  visibility: hidden;
+  position: absolute;
+  z-index: 100;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #3a3a3c;
+  color: #fff;
+  text-align: left;
+  padding: 10px;
+  border-radius: 6px;
+  width: max-content;
+  max-width: 300px;
+  max-height: 200px;
+  overflow-y: auto;
+  font-size: 14px;
+  font-family: monospace;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.remaining-count-container:hover .remaining-tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Tooltip arrow */
+.remaining-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #3a3a3c transparent transparent transparent;
+}
+
 .analysis-link {
   color: var(--color-correct);
   text-decoration: underline;

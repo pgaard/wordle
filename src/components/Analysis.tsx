@@ -43,12 +43,23 @@ const Analysis: React.FC<Props> = ({ guesses, solution, onBack }) => {
                                         <Row guess={guess} solution={solution} isRevealed={false} />
                                     </td>
                                     <td>
-                                        <div className="remaining-count">
-                                            {remaining.length}
+                                        <div className="remaining-count-container">
+                                            <div className="remaining-count">
+                                                {remaining.length}
+                                            </div>
+                                            {guess !== solution && (
+                                                <div className="remaining-tooltip">
+                                                    {remaining.map((word) => (
+                                                        <div key={word}>{word}</div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
-                                        {remaining.length < 20 && (
+                                        {remaining.length < 20 && guess !== solution && (
                                             <div className="possible-words">
-                                                {remaining.join(', ')}
+                                                {remaining.map((word) => (
+                                                    <div key={word}>{word}</div>
+                                                ))}
                                             </div>
                                         )}
                                     </td>
