@@ -9,6 +9,7 @@ const getTodayString = () => {
 };
 
 export const useGameState = () => {
+    const [sessionDate] = useState(getTodayString());
     const [solution] = useState(getWordOfTheDay());
     const [guesses, setGuesses] = useState<string[]>([]);
     const [revealedGuessesCount, setRevealedGuessesCount] = useState(0);
@@ -26,7 +27,7 @@ export const useGameState = () => {
         const savedState = localStorage.getItem(STORAGE_KEY);
         if (savedState) {
             const { guesses: savedGuesses, date, isWon: savedIsWon, isGameOver: savedIsGameOver } = JSON.parse(savedState);
-            if (date === getTodayString()) {
+            if (date === sessionDate) {
                 setGuesses(savedGuesses);
                 setRevealedGuessesCount(savedGuesses.length);
                 setIsWon(savedIsWon);
@@ -35,7 +36,7 @@ export const useGameState = () => {
                 localStorage.removeItem(STORAGE_KEY);
             }
         }
-    }, []);
+    }, [sessionDate]);
 
     // Save state on changes
     useEffect(() => {
@@ -45,12 +46,12 @@ export const useGameState = () => {
         if (guesses.length > 0 || isGameOver) {
             localStorage.setItem(STORAGE_KEY, JSON.stringify({
                 guesses,
-                date: getTodayString(),
+                date: sessionDate,
                 isWon,
                 isGameOver
             }));
         }
-    }, [guesses, isWon, isGameOver]);
+    }, [guesses, isWon, isGameOver, sessionDate]);
 
     const onChar = (char: string) => {
         if (currentGuess.length < 5 && !isGameOver && !isRevealing) {
