@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import Row from './Row';
-import { filterPossibleWords } from '../utils/analysisUtils';
+import { filterPossibleWords, calculateLuck, TOTAL_SOLUTIONS } from '../utils/analysisUtils';
 
 interface Props {
     guesses: string[];
@@ -11,6 +11,17 @@ interface Props {
 const Analysis: React.FC<Props> = ({ guesses, solution, onBack }) => {
     const analysisResults = useMemo(() => {
         return filterPossibleWords(guesses, solution);
+    }, [guesses, solution]);
+
+    const [luckResults, setLuckResults] = useState<number[]>([]);
+
+    useEffect(() => {
+        // Calculate luck in a timeout to allow UI to render first
+        const timer = setTimeout(() => {
+            const results = calculateLuck(guesses, solution);
+            setLuckResults(results);
+        }, 100);
+        return () => clearTimeout(timer);
     }, [guesses, solution]);
 
     return (
@@ -28,15 +39,18 @@ const Analysis: React.FC<Props> = ({ guesses, solution, onBack }) => {
                         <tr>
                             <th>Guess</th>
                             <th>Remaining Solutions</th>
+                            <th>Luck</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td><em>Start</em></td>
-                            <td>2315</td>
+                            <td>{TOTAL_SOLUTIONS}</td>
+                            <td>-</td>
                         </tr>
                         {guesses.map((guess, i) => {
                             const remaining = analysisResults[i];
+                            const luck = luckResults[i];
                             return (
                                 <tr key={i}>
                                     <td>
@@ -62,6 +76,9 @@ const Analysis: React.FC<Props> = ({ guesses, solution, onBack }) => {
                                                 ))}
                                             </div>
                                         )}
+                                    </td>
+                                    <td>
+                                        {guess !== solution && luck !== undefined ? `${luck}%` : null}
                                     </td>
                                 </tr>
                             );
