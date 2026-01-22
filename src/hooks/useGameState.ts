@@ -93,7 +93,8 @@ export const useGameState = () => {
             if (currentGuess === solution) {
                 setIsWon(true);
                 setIsGameOver(true);
-                setMessage('Splendid!');
+                const winMessages = ['Genius!', 'Magnificent!', 'Impressive!', 'Splendid!', 'Nice!', 'Phew!'];
+                setMessage(winMessages[newGuesses.length - 1]);
                 setTimeout(() => setMessage(''), 2500);
             } else if (newGuesses.length === 6) {
                 setIsGameOver(true);
