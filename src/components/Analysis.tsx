@@ -46,7 +46,7 @@ const Analysis: React.FC<Props> = ({ guesses, solution, onBack }) => {
                         <tr>
                             <td><em>Start</em></td>
                             <td>{TOTAL_SOLUTIONS}</td>
-                            <td>-</td>
+                            <td></td>
                         </tr>
                         {guesses.map((guess, i) => {
                             const remaining = analysisResults[i];

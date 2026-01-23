@@ -69,7 +69,7 @@ export const calculateLuck = (
                 }
             }
 
-            if (candidateRemainingCount > myRemainingCount) {
+            if (candidateRemainingCount >= myRemainingCount) {
                 worseOutcomeCount++;
             }
         }
