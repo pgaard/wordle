@@ -39,7 +39,7 @@ const Analysis: React.FC<Props> = ({ guesses, solution, onBack }) => {
                         <tr>
                             <th>Guess</th>
                             <th>Remaining Solutions</th>
-                            <th>Luck</th>
+                            <th>Skill</th>
                         </tr>
                     </thead>
                     <tbody>

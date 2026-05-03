@@ -55,7 +55,8 @@ export const useGameState = () => {
 
     const onChar = (char: string) => {
         if (currentGuess.length < 5 && !isGameOver && !isRevealing) {
-            setCurrentGuess((prev) => prev + char.toLowerCase());
+            const next = char === ' ' ? ' ' : char.toLowerCase();
+            setCurrentGuess((prev) => prev + next);
         }
     };
 
@@ -70,6 +71,12 @@ export const useGameState = () => {
 
         if (currentGuess.length !== 5) {
             setMessage('Not enough letters');
+            setTimeout(() => setMessage(''), 1500);
+            return;
+        }
+
+        if (currentGuess.includes(' ')) {
+            setMessage('Fill in all letters');
             setTimeout(() => setMessage(''), 1500);
             return;
         }

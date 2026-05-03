@@ -41,6 +41,9 @@ const App: React.FC = () => {
                 onEnter();
             } else if (e.key === 'Backspace') {
                 onDelete();
+            } else if (e.key === ' ') {
+                e.preventDefault();
+                onChar(' ');
             } else if (e.key.length === 1 && e.key.match(/[a-z]/i)) {
                 onChar(e.key);
             }

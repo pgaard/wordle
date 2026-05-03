@@ -34,9 +34,10 @@ const Row: React.FC<Props> = ({ guess, currentGuess, solution, isRevealed }) => 
         const letters = currentGuess.split('');
         return (
             <div className="row">
-                {tiles.map((_, i) => (
-                    <Tile key={i} value={letters[i]} />
-                ))}
+                {tiles.map((_, i) => {
+                    const letter = letters[i];
+                    return <Tile key={i} value={letter === ' ' ? '_' : letter} />;
+                })}
             </div>
         );
     }
