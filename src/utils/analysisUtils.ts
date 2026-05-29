@@ -32,9 +32,10 @@ export const filterPossibleWords = (
 };
 
 /**
- * Calculates the "luck" of each guess.
- * Luck is defined as the percentile of how well the guess narrowed down the pool
- * compared to all other possible guesses (from the solution list).
+ * Ranks each guess against every other guess the player could have made from the
+ * current solution pool, by how much each one would have narrowed the pool given
+ * the actual solution. Rank 1 = fewest remaining words. Ties share the best rank.
+ * Score = (N - rank + 1) / N * 100, so the best guess(es) score 100.
  */
 export const calculateLuck = (
     guesses: string[],
@@ -42,44 +43,40 @@ export const calculateLuck = (
 ): number[] => {
     const allSolutions = wordleData as string[];
     let currentPool = [...allSolutions];
-    const luckScores: number[] = [];
+    const scores: number[] = [];
 
     guesses.forEach((guess) => {
-        // 1. Calculate how many words remain after our guess
-        const myStatuses = getGuessStatuses(guess, solution);
-        const myRemainingDetails = currentPool.filter((candidate) => {
-            const candidateStatuses = getGuessStatuses(guess, candidate);
-            return JSON.stringify(myStatuses) === JSON.stringify(candidateStatuses);
-        });
-        const myRemainingCount = myRemainingDetails.length;
-
-        // 2. Compare against all other possible guesses (using current pool)
-        let worseOutcomeCount = 0;
-
-        // We compare our guess against all other *currently possible* solutions
-        // to see how well we did relative to the available options.
-        for (const candidateGuess of currentPool) {
-            const candidateStatuses = getGuessStatuses(candidateGuess, solution);
-
-            let candidateRemainingCount = 0;
+        const remainingFor = (candidateGuess: string): number => {
+            const statuses = getGuessStatuses(candidateGuess, solution).join(',');
+            let count = 0;
             for (const poolWord of currentPool) {
-                const s = getGuessStatuses(candidateGuess, poolWord);
-                if (JSON.stringify(candidateStatuses) === JSON.stringify(s)) {
-                    candidateRemainingCount++;
+                if (getGuessStatuses(candidateGuess, poolWord).join(',') === statuses) {
+                    count++;
                 }
             }
+            return count;
+        };
 
-            if (candidateRemainingCount >= myRemainingCount) {
-                worseOutcomeCount++;
+        const myRemaining = remainingFor(guess);
+
+        let strictlyBetter = 0;
+        for (const candidateGuess of currentPool) {
+            if (remainingFor(candidateGuess) < myRemaining) {
+                strictlyBetter++;
             }
         }
 
-        const percentile = Math.round((worseOutcomeCount / currentPool.length) * 100);
-        luckScores.push(percentile);
+        const N = currentPool.length;
+        const rank = strictlyBetter + 1;
+        const score = Math.round(((N - rank + 1) / N) * 100);
+        scores.push(score);
 
-        // Update pool for next iteration
-        currentPool = myRemainingDetails;
+        currentPool = currentPool.filter((candidate) => {
+            const myStatuses = getGuessStatuses(guess, solution).join(',');
+            const candidateStatuses = getGuessStatuses(guess, candidate).join(',');
+            return myStatuses === candidateStatuses;
+        });
     });
 
-    return luckScores;
+    return scores;
 };
