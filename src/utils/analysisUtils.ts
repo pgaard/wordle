@@ -6,6 +6,26 @@ import { getGuessStatuses, LetterState } from './gameLogic';
  */
 export const TOTAL_SOLUTIONS = (wordleData as string[]).length;
 
+/**
+ * Counts how many words in `pool` would remain if `candidateGuess` were played
+ * against `solution` — i.e. the size of the pool filtered to words producing
+ * the same feedback pattern as `candidateGuess` vs `solution`.
+ */
+export const countRemainingForGuess = (
+    candidateGuess: string,
+    solution: string,
+    pool: string[]
+): number => {
+    const targetStatuses = getGuessStatuses(candidateGuess, solution).join(',');
+    let count = 0;
+    for (const poolWord of pool) {
+        if (getGuessStatuses(candidateGuess, poolWord).join(',') === targetStatuses) {
+            count++;
+        }
+    }
+    return count;
+};
+
 export const filterPossibleWords = (
     guesses: string[],
     solution: string
@@ -46,22 +66,11 @@ export const calculateLuck = (
     const scores: number[] = [];
 
     guesses.forEach((guess) => {
-        const remainingFor = (candidateGuess: string): number => {
-            const statuses = getGuessStatuses(candidateGuess, solution).join(',');
-            let count = 0;
-            for (const poolWord of currentPool) {
-                if (getGuessStatuses(candidateGuess, poolWord).join(',') === statuses) {
-                    count++;
-                }
-            }
-            return count;
-        };
-
-        const myRemaining = remainingFor(guess);
+        const myRemaining = countRemainingForGuess(guess, solution, currentPool);
 
         let strictlyBetter = 0;
         for (const candidateGuess of currentPool) {
-            if (remainingFor(candidateGuess) < myRemaining) {
+            if (countRemainingForGuess(candidateGuess, solution, currentPool) < myRemaining) {
                 strictlyBetter++;
             }
         }

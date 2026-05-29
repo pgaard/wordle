@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import Row from './Row';
-import { filterPossibleWords, calculateLuck, TOTAL_SOLUTIONS } from '../utils/analysisUtils';
+import { filterPossibleWords, calculateLuck, countRemainingForGuess, TOTAL_SOLUTIONS } from '../utils/analysisUtils';
 
 interface Props {
     guesses: string[];
@@ -71,9 +71,17 @@ const Analysis: React.FC<Props> = ({ guesses, solution, onBack }) => {
                                         </div>
                                         {remaining.length < 20 && guess !== solution && (
                                             <div className="possible-words">
-                                                {remaining.map((word) => (
-                                                    <div key={word}>{word}</div>
-                                                ))}
+                                                {remaining
+                                                    .map((word) => ({
+                                                        word,
+                                                        count: countRemainingForGuess(word, solution, remaining),
+                                                    }))
+                                                    .sort((a, b) => a.count - b.count)
+                                                    .map(({ word, count }) => (
+                                                        <div key={word}>
+                                                            {word} ({word === solution ? 'solution' : `${count} left`})
+                                                        </div>
+                                                    ))}
                                             </div>
                                         )}
                                     </td>
