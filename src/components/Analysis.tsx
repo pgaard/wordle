@@ -14,6 +14,34 @@ const Analysis: React.FC<Props> = ({ guesses, solution, onBack }) => {
     }, [guesses, solution]);
 
     const [luckResults, setLuckResults] = useState<number[]>([]);
+    const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
+
+    const wordListCache = useMemo(
+        () => new Map<number, { word: string; count: number }[]>(),
+        [analysisResults, solution]
+    );
+
+    const getSortedWordList = (i: number, remaining: string[]) => {
+        const cached = wordListCache.get(i);
+        if (cached) return cached;
+        const computed = remaining
+            .map((word) => ({
+                word,
+                count: countRemainingForGuess(word, solution, remaining),
+            }))
+            .sort((a, b) => a.count - b.count);
+        wordListCache.set(i, computed);
+        return computed;
+    };
+
+    const toggleRow = (i: number) => {
+        setExpandedRows((prev) => {
+            const next = new Set(prev);
+            if (next.has(i)) next.delete(i);
+            else next.add(i);
+            return next;
+        });
+    };
 
     useEffect(() => {
         // Calculate luck in a timeout to allow UI to render first
@@ -51,37 +79,33 @@ const Analysis: React.FC<Props> = ({ guesses, solution, onBack }) => {
                         {guesses.map((guess, i) => {
                             const remaining = analysisResults[i];
                             const luck = luckResults[i];
+                            const isExpandable = remaining.length >= 20 && guess !== solution;
+                            const showList = (remaining.length < 20 && guess !== solution) || expandedRows.has(i);
                             return (
                                 <tr key={i}>
                                     <td>
                                         <Row guess={guess} solution={solution} isRevealed={false} />
                                     </td>
                                     <td>
-                                        <div className="remaining-count-container">
-                                            <div className="remaining-count">
-                                                {remaining.length}
-                                            </div>
-                                            {guess !== solution && (
-                                                <div className="remaining-tooltip">
-                                                    {remaining.map((word) => (
-                                                        <div key={word}>{word}</div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                        {remaining.length < 20 && guess !== solution && (
+                                        {isExpandable ? (
+                                            <button
+                                                type="button"
+                                                className="remaining-count remaining-count-button"
+                                                onClick={() => toggleRow(i)}
+                                                aria-expanded={expandedRows.has(i)}
+                                            >
+                                                {remaining.length} {expandedRows.has(i) ? '▾' : '▸'}
+                                            </button>
+                                        ) : (
+                                            <div className="remaining-count">{remaining.length}</div>
+                                        )}
+                                        {showList && (
                                             <div className="possible-words">
-                                                {remaining
-                                                    .map((word) => ({
-                                                        word,
-                                                        count: countRemainingForGuess(word, solution, remaining),
-                                                    }))
-                                                    .sort((a, b) => a.count - b.count)
-                                                    .map(({ word, count }) => (
-                                                        <div key={word}>
-                                                            {word} ({word === solution ? 'solution' : `${count} left`})
-                                                        </div>
-                                                    ))}
+                                                {getSortedWordList(i, remaining).map(({ word, count }) => (
+                                                    <div key={word}>
+                                                        {word} ({word === solution ? 'solution' : `${count} left`})
+                                                    </div>
+                                                ))}
                                             </div>
                                         )}
                                     </td>
