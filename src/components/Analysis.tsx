@@ -102,7 +102,7 @@ const Analysis: React.FC<Props> = ({ guesses, solution, onBack }) => {
                                         {showList && (
                                             <div className="possible-words">
                                                 {getSortedWordList(i, remaining).map(({ word, count }) => (
-                                                    <div key={word}>
+                                                    <div key={word} style={{ whiteSpace: 'nowrap' }}>
                                                         {word} ({word === solution ? 'solution' : `${count} left`})
                                                     </div>
                                                 ))}
