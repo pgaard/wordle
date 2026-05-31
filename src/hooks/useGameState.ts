@@ -5,7 +5,13 @@ import { getGuessStatuses, LetterState } from '../utils/gameLogic';
 const STORAGE_KEY = 'wordle-state';
 
 const getTodayString = () => {
-    return new Date().toISOString().split('T')[0];
+    // Use local time so this matches getWordOfTheDay's local-time index.
+    // (toISOString returns UTC, which drifts a day for non-UTC timezones.)
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 };
 
 export const useGameState = () => {
@@ -27,7 +33,11 @@ export const useGameState = () => {
         const savedState = localStorage.getItem(STORAGE_KEY);
         if (savedState) {
             const { guesses: savedGuesses, date, isWon: savedIsWon, isGameOver: savedIsGameOver } = JSON.parse(savedState);
-            if (date === sessionDate) {
+            // Self-heal corrupted state: a won game whose winning guess doesn't
+            // match today's solution belongs to a different puzzle (e.g. saved
+            // during the old UTC/local date mismatch). Discard it.
+            const isStale = savedIsWon && savedGuesses[savedGuesses.length - 1] !== solution;
+            if (date === sessionDate && !isStale) {
                 setGuesses(savedGuesses);
                 setRevealedGuessesCount(savedGuesses.length);
                 setIsWon(savedIsWon);
@@ -36,7 +46,7 @@ export const useGameState = () => {
                 localStorage.removeItem(STORAGE_KEY);
             }
         }
-    }, [sessionDate]);
+    }, [sessionDate, solution]);
 
     // Save state on changes
     useEffect(() => {
