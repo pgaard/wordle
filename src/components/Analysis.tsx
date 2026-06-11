@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import Row from './Row';
-import { filterPossibleWords, calculateLuck, countRemainingForGuess, TOTAL_SOLUTIONS } from '../utils/analysisUtils';
+import { filterPossibleWords, calculateLuck, countRemainingForGuess, TOTAL_SOLUTIONS, LuckScore } from '../utils/analysisUtils';
 
 interface Props {
     guesses: string[];
@@ -13,7 +13,7 @@ const Analysis: React.FC<Props> = ({ guesses, solution, onBack }) => {
         return filterPossibleWords(guesses, solution);
     }, [guesses, solution]);
 
-    const [luckResults, setLuckResults] = useState<number[]>([]);
+    const [luckResults, setLuckResults] = useState<LuckScore[]>([]);
     const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
 
     const wordListCache = useMemo(
@@ -32,6 +32,13 @@ const Analysis: React.FC<Props> = ({ guesses, solution, onBack }) => {
             .sort((a, b) => a.count - b.count);
         wordListCache.set(i, computed);
         return computed;
+    };
+
+    const formatLuck = (rank: number, total: number): string => {
+        const denom = total / rank;
+        const rounded = Math.round(denom * 10) / 10;
+        const display = Number.isInteger(rounded) ? rounded.toString() : rounded.toFixed(1);
+        return `1 in ${display}`;
     };
 
     const toggleRow = (i: number) => {
@@ -66,8 +73,8 @@ const Analysis: React.FC<Props> = ({ guesses, solution, onBack }) => {
                     <thead>
                         <tr>
                             <th>Guess</th>
-                            <th>Remaining Solutions</th>
-                            <th>Skill</th>
+                            <th>Words Left</th>
+                            <th>Probability</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -109,8 +116,8 @@ const Analysis: React.FC<Props> = ({ guesses, solution, onBack }) => {
                                             </div>
                                         )}
                                     </td>
-                                    <td>
-                                        {guess !== solution && luck !== undefined ? `${luck}%` : null}
+                                    <td style={{ whiteSpace: 'nowrap' }}>
+                                        {luck !== undefined ? formatLuck(luck.rank, luck.total) : null}
                                     </td>
                                 </tr>
                             );

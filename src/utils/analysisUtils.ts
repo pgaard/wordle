@@ -1,5 +1,5 @@
 import wordleData from '../../wordle.json';
-import { getGuessStatuses, LetterState } from './gameLogic';
+import { getGuessStatuses } from './gameLogic';
 
 /**
  * Filters the solution list based on a set of guesses and their results.
@@ -55,15 +55,18 @@ export const filterPossibleWords = (
  * Ranks each guess against every other guess the player could have made from the
  * current solution pool, by how much each one would have narrowed the pool given
  * the actual solution. Rank 1 = fewest remaining words. Ties share the best rank.
- * Score = (N - rank + 1) / N * 100, so the best guess(es) score 100.
+ * Returns { rank, total } per guess; luck is conceptually rank / total — lower is
+ * luckier (e.g. 1 / 10 means the player picked the best of 10 candidates).
  */
+export type LuckScore = { rank: number; total: number };
+
 export const calculateLuck = (
     guesses: string[],
     solution: string
-): number[] => {
+): LuckScore[] => {
     const allSolutions = wordleData as string[];
     let currentPool = [...allSolutions];
-    const scores: number[] = [];
+    const scores: LuckScore[] = [];
 
     guesses.forEach((guess) => {
         const myRemaining = countRemainingForGuess(guess, solution, currentPool);
@@ -75,10 +78,7 @@ export const calculateLuck = (
             }
         }
 
-        const N = currentPool.length;
-        const rank = strictlyBetter + 1;
-        const score = Math.round(((N - rank + 1) / N) * 100);
-        scores.push(score);
+        scores.push({ rank: strictlyBetter + 1, total: currentPool.length });
 
         currentPool = currentPool.filter((candidate) => {
             const myStatuses = getGuessStatuses(guess, solution).join(',');
