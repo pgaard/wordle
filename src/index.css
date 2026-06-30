@@ -444,6 +444,23 @@ header h1 {
   font-family: monospace;
 }
 
+.not-in-answer-list {
+  font-size: 11px;
+  color: var(--color-present);
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+.ruled-out {
+  color: var(--color-present);
+  font-style: italic;
+}
+
+.next-guess-word {
+  color: #4a9eff;
+  font-weight: 700;
+}
+
 .analysis-link {
   color: var(--color-correct);
   text-decoration: underline;

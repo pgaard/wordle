@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import Row from './Row';
-import { filterPossibleWords, calculateLuck, countRemainingForGuess, TOTAL_SOLUTIONS, LuckScore } from '../utils/analysisUtils';
+import { filterPossibleWords, calculateLuck, countRemainingForGuess, guessWasStillPossible, isPossibleSolutionWord, TOTAL_SOLUTIONS, LuckScore } from '../utils/analysisUtils';
 
 interface Props {
     guesses: string[];
@@ -11,6 +11,10 @@ interface Props {
 const Analysis: React.FC<Props> = ({ guesses, solution, onBack }) => {
     const analysisResults = useMemo(() => {
         return filterPossibleWords(guesses, solution);
+    }, [guesses, solution]);
+
+    const stillPossible = useMemo(() => {
+        return guessWasStillPossible(guesses, solution);
     }, [guesses, solution]);
 
     const [luckResults, setLuckResults] = useState<LuckScore[]>([]);
@@ -88,6 +92,9 @@ const Analysis: React.FC<Props> = ({ guesses, solution, onBack }) => {
                             const luck = luckResults[i];
                             const isExpandable = remaining.length >= 20 && guess !== solution;
                             const showList = (remaining.length < 20 && guess !== solution) || expandedRows.has(i);
+                            const wasPossible = stillPossible[i];
+                            const notInAnswerList = !isPossibleSolutionWord(guess);
+                            const nextGuess = guesses[i + 1]?.toLowerCase();
                             return (
                                 <tr key={i}>
                                     <td>
@@ -106,10 +113,19 @@ const Analysis: React.FC<Props> = ({ guesses, solution, onBack }) => {
                                         ) : (
                                             <div className="remaining-count">{remaining.length}</div>
                                         )}
+                                        {notInAnswerList && (
+                                            <div className="not-in-answer-list">
+                                                Not in Wordle list
+                                            </div>
+                                        )}
                                         {showList && (
                                             <div className="possible-words">
                                                 {getSortedWordList(i, remaining).map(({ word, count }) => (
-                                                    <div key={word} style={{ whiteSpace: 'nowrap' }}>
+                                                    <div
+                                                        key={word}
+                                                        className={word === nextGuess ? 'next-guess-word' : undefined}
+                                                        style={{ whiteSpace: 'nowrap' }}
+                                                    >
                                                         {word} ({word === solution ? 'solution' : `${count} left`})
                                                     </div>
                                                 ))}
@@ -117,7 +133,11 @@ const Analysis: React.FC<Props> = ({ guesses, solution, onBack }) => {
                                         )}
                                     </td>
                                     <td style={{ whiteSpace: 'nowrap' }}>
-                                        {luck !== undefined ? formatLuck(luck.rank, luck.total) : null}
+                                        {!wasPossible && !notInAnswerList ? (
+                                            <span className="ruled-out">Ruled out</span>
+                                        ) : luck !== undefined ? (
+                                            formatLuck(luck.rank, luck.total)
+                                        ) : null}
                                     </td>
                                 </tr>
                             );

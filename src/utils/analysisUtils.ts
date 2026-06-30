@@ -38,7 +38,7 @@ export const filterPossibleWords = (
     guesses.forEach((guess) => {
         const statuses = getGuessStatuses(guess, solution);
 
-        // For each guess, find words in the current pool that would produce 
+        // For each guess, find words in the current pool that would produce
         // the SAME feedback if they were the actual solution.
         currentPool = currentPool.filter((candidate) => {
             const candidateStatuses = getGuessStatuses(guess, candidate);
@@ -46,6 +46,41 @@ export const filterPossibleWords = (
         });
 
         results.push([...currentPool]);
+    });
+
+    return results;
+};
+
+const solutionSet = new Set((wordleData as string[]).map((w) => w.toLowerCase()));
+
+/**
+ * Whether a word is in the solution list at all (i.e. could ever be an answer).
+ * A valid guess can be absent from this list — it's accepted but never the answer.
+ */
+export const isPossibleSolutionWord = (word: string): boolean =>
+    solutionSet.has(word.toLowerCase());
+
+/**
+ * For each guess, returns whether it was still a possible solution given the
+ * feedback from all PREVIOUS guesses. A guess that was already ruled out cannot
+ * be the answer, so reporting a probability for it is misleading.
+ */
+export const guessWasStillPossible = (
+    guesses: string[],
+    solution: string
+): boolean[] => {
+    const allSolutions = wordleData as string[];
+    let currentPool = allSolutions;
+    const results: boolean[] = [];
+
+    guesses.forEach((guess) => {
+        results.push(currentPool.some((w) => w === guess.toLowerCase()));
+
+        const statuses = getGuessStatuses(guess, solution);
+        currentPool = currentPool.filter((candidate) => {
+            const candidateStatuses = getGuessStatuses(guess, candidate);
+            return JSON.stringify(statuses) === JSON.stringify(candidateStatuses);
+        });
     });
 
     return results;
