@@ -439,6 +439,10 @@ header h1 {
 
 /* Make tiles smaller in analysis view to save space */
 .analysis-table .tile {
+  /* Border-box so the widths below are the whole footprint. The vw budgets are
+     shares of the 500px container (8vw = 40/500), and they only add up if the
+     2px borders come out of that share instead of on top of it. */
+  box-sizing: border-box;
   width: min(40px, 8vw);
   height: min(40px, 8vw);
   font-size: min(1.2rem, 4vw);
