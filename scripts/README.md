@@ -2,28 +2,31 @@
 
 Everything here is **build-time only**. Nothing in this directory is imported by
 `src/`, and none of it ships in the bundle. It exists to generate one file:
-`wordle6-answers.json` in the repo root.
+`wordle6.json` in the repo root.
 
 ```
 node scripts/build-wordle6-answers.mjs
 ```
 
-Re-run that after editing the script or `wordle6.json`. It rewrites
-`wordle6-answers.json` and the two review files.
+Re-run that after editing the script or `words6.json`. It rewrites
+`wordle6.json` and the two review files.
 
 ## Why this exists
 
-The 5-letter game has two word lists, and the split matters:
+Each game has two word lists, and the split matters. The names mirror each other
+by length — `words*` is what you may **type**, `wordle*` is what may be the
+**answer**:
 
-| file | role | size |
+| | legal guesses | possible answers |
 | --- | --- | --- |
-| `words.json` | legal **guesses** | 12,484 |
-| `wordle.json` | possible **answers** | 2,315 |
+| 5-letter | `words.json` (12,484) | `wordle.json` (2,315) |
+| 6-letter | `words6.json` (5,128) | `wordle6.json` (4,163) |
 
 `wordle.json` is Wordle's real answer list — hand-curated, no `-s` plurals, and
-biased toward words a normal person knows.
+biased toward words a normal person knows. `wordle6.json` is the one file this
+directory generates; the other three are inputs and are never written to.
 
-`wordle6.json` arrived as a single raw scraped list of 5,128 words with no such
+`words6.json` arrived as a single raw scraped list of 5,128 words with no such
 curation, so it could not be used as an answer pool directly. Two separate
 problems disqualified about a third of it, and they need different tools:
 
@@ -32,7 +35,7 @@ problems disqualified about a third of it, and they need different tools:
 2. **Non-words** — `fourty`, `doesnt`, `havent`, `allday`, `gocart`, `madeup`,
    `beenie`, `giveth`. No morphology rule can catch these.
 
-So this script generates a filtered answer pool, and `wordle6.json` stays the
+So this script generates a filtered answer pool, and `words6.json` stays the
 guess dictionary. Removed words are **still legal to type** — they just never
 become the answer. Same shape as the 5-letter setup.
 
@@ -169,7 +172,7 @@ before adding one.
   future day. In-progress saved games in `localStorage` (`wordle6-state`) would
   then be scored against a different solution. Clear that key after regenerating,
   or accept one bad day.
-- **`wordle6-answers.json` is generated.** Don't hand-edit it — edit `ALLOW`,
+- **`wordle6.json` is generated.** Don't hand-edit it — edit `ALLOW`,
   `DENY`, or the rules and re-run.
-- **Answers must stay a subset of `wordle6.json`,** or a word could be the
+- **Answers must stay a subset of `words6.json`,** or a word could be the
   answer without being typeable.

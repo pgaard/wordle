@@ -1,7 +1,7 @@
 import wordsData from '../../words.json';
 import wordleData from '../../wordle.json';
+import words6Data from '../../words6.json';
 import wordle6Data from '../../wordle6.json';
-import wordle6Answers from '../../wordle6-answers.json';
 
 export type WordLength = 5 | 6;
 
@@ -12,17 +12,17 @@ const lower = (words: string[]) => words.map((w) => w.toLowerCase());
 
 const solutionLists: Record<WordLength, string[]> = {
     5: lower(wordleData as string[]),
-    6: lower(wordle6Answers as string[]),
+    6: lower(wordle6Data as string[]),
 };
 
 // Both lengths split guesses from answers: every word in the big dictionary is
-// legal to type, but only the curated list can be the answer. wordle6.json is a
+// legal to type, but only the curated list can be the answer. words6.json is a
 // raw scraped list carrying ~17% plurals plus outright non-words (fourty,
-// doesnt), so wordle6-answers.json holds the filtered subset. It is generated,
+// doesnt), so wordle6.json holds the filtered subset. It is generated,
 // not hand-edited -- see scripts/README.md.
 const validWordSets: Record<WordLength, Set<string>> = {
     5: new Set([...lower(wordsData as string[]), ...solutionLists[5]]),
-    6: new Set([...lower(wordle6Data as string[]), ...solutionLists[6]]),
+    6: new Set([...lower(words6Data as string[]), ...solutionLists[6]]),
 };
 
 export const getSolutionList = (wordLength: WordLength): string[] => solutionLists[wordLength];
