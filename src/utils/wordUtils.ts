@@ -1,8 +1,31 @@
 import wordsData from '../../words.json';
 import wordleData from '../../wordle.json';
+import wordle6Data from '../../wordle6.json';
 
-export const getWordOfTheDay = () => {
-    const solutions = wordleData as string[];
+export type WordLength = 5 | 6;
+
+export const WORD_LENGTHS: WordLength[] = [5, 6];
+export const MAX_GUESSES = 6;
+
+const lower = (words: string[]) => words.map((w) => w.toLowerCase());
+
+const solutionLists: Record<WordLength, string[]> = {
+    5: lower(wordleData as string[]),
+    6: lower(wordle6Data as string[]),
+};
+
+// The 5-letter game has a separate dictionary of words that are legal guesses but
+// never answers. There is no such list for 6 letters, so its solution list doubles
+// as its dictionary.
+const validWordSets: Record<WordLength, Set<string>> = {
+    5: new Set([...lower(wordsData as string[]), ...solutionLists[5]]),
+    6: new Set(solutionLists[6]),
+};
+
+export const getSolutionList = (wordLength: WordLength): string[] => solutionLists[wordLength];
+
+export const getWordOfTheDay = (wordLength: WordLength) => {
+    const solutions = solutionLists[wordLength];
 
     // Check for "word" query parameter to override date-based selection
     const urlParams = new URLSearchParams(window.location.search);
@@ -20,10 +43,9 @@ export const getWordOfTheDay = () => {
     }
 
     // Use modulo in case the days or provided index exceed the list length
-    return solutions[index % solutions.length].toLowerCase();
+    return solutions[index % solutions.length];
 };
 
-export const isValidWord = (word: string) => {
-    return (wordsData as string[]).includes(word.toLowerCase());
+export const isValidWord = (word: string, wordLength: WordLength) => {
+    return validWordSets[wordLength].has(word.toLowerCase());
 };
-

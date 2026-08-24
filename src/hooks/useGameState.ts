@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
-import { getWordOfTheDay, isValidWord } from '../utils/wordUtils';
+import { getWordOfTheDay, isValidWord, MAX_GUESSES, WordLength } from '../utils/wordUtils';
 import { getGuessStatuses, LetterState } from '../utils/gameLogic';
 
-const STORAGE_KEY = 'wordle-state';
+// Each word length keeps its own daily puzzle state, so both can be played
+// independently on the same day. The 5-letter key is unchanged so existing
+// saved games survive.
+const getStorageKey = (wordLength: WordLength) =>
+    wordLength === 5 ? 'wordle-state' : `wordle${wordLength}-state`;
 
 const getTodayString = () => {
     // Use local time so this matches getWordOfTheDay's local-time index.
@@ -14,9 +18,10 @@ const getTodayString = () => {
     return `${year}-${month}-${day}`;
 };
 
-export const useGameState = () => {
+export const useGameState = (wordLength: WordLength) => {
+    const storageKey = getStorageKey(wordLength);
     const [sessionDate] = useState(getTodayString());
-    const [solution] = useState(getWordOfTheDay());
+    const [solution] = useState(() => getWordOfTheDay(wordLength));
     const [guesses, setGuesses] = useState<string[]>([]);
     const [revealedGuessesCount, setRevealedGuessesCount] = useState(0);
     const [currentGuess, setCurrentGuess] = useState('');
@@ -30,7 +35,7 @@ export const useGameState = () => {
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('word')) return;
 
-        const savedState = localStorage.getItem(STORAGE_KEY);
+        const savedState = localStorage.getItem(storageKey);
         if (savedState) {
             const { guesses: savedGuesses, date, isWon: savedIsWon, isGameOver: savedIsGameOver } = JSON.parse(savedState);
             // Self-heal corrupted state: a won game whose winning guess doesn't
@@ -43,10 +48,10 @@ export const useGameState = () => {
                 setIsWon(savedIsWon);
                 setIsGameOver(savedIsGameOver);
             } else {
-                localStorage.removeItem(STORAGE_KEY);
+                localStorage.removeItem(storageKey);
             }
         }
-    }, [sessionDate, solution]);
+    }, [sessionDate, solution, storageKey]);
 
     // Save state on changes
     useEffect(() => {
@@ -54,17 +59,17 @@ export const useGameState = () => {
         if (urlParams.get('word')) return;
 
         if (guesses.length > 0 || isGameOver) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            localStorage.setItem(storageKey, JSON.stringify({
                 guesses,
                 date: sessionDate,
                 isWon,
                 isGameOver
             }));
         }
-    }, [guesses, isWon, isGameOver, sessionDate]);
+    }, [guesses, isWon, isGameOver, sessionDate, storageKey]);
 
     const onChar = (char: string) => {
-        if (currentGuess.length < 5 && !isGameOver && !isRevealing) {
+        if (currentGuess.length < wordLength && !isGameOver && !isRevealing) {
             const next = char === ' ' ? ' ' : char.toLowerCase();
             setCurrentGuess((prev) => prev + next);
         }
@@ -79,7 +84,7 @@ export const useGameState = () => {
     const onEnter = () => {
         if (isGameOver || isRevealing) return;
 
-        if (currentGuess.length !== 5) {
+        if (currentGuess.length !== wordLength) {
             setMessage('Not enough letters');
             setTimeout(() => setMessage(''), 1500);
             return;
@@ -91,7 +96,7 @@ export const useGameState = () => {
             return;
         }
 
-        if (!isValidWord(currentGuess)) {
+        if (!isValidWord(currentGuess, wordLength)) {
             setMessage('Not in word list');
             setTimeout(() => setMessage(''), 1500);
             return;
@@ -113,11 +118,11 @@ export const useGameState = () => {
                 const winMessages = ['Genius!', 'Magnificent!', 'Impressive!', 'Splendid!', 'Nice!', 'Phew!'];
                 setMessage(winMessages[newGuesses.length - 1]);
                 setTimeout(() => setMessage(''), 2500);
-            } else if (newGuesses.length === 6) {
+            } else if (newGuesses.length === MAX_GUESSES) {
                 setIsGameOver(true);
                 setMessage(solution.toUpperCase());
             }
-        }, 2000);
+        }, wordLength * 300 + 500);
     };
 
     const getStatuses = () => {

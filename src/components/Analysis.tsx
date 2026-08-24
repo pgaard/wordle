@@ -1,21 +1,23 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import Row from './Row';
-import { filterPossibleWords, calculateLuck, countRemainingForGuess, guessWasStillPossible, isPossibleSolutionWord, TOTAL_SOLUTIONS, LuckScore } from '../utils/analysisUtils';
+import { filterPossibleWords, calculateLuck, countRemainingForPool, guessWasStillPossible, isPossibleSolutionWord, getTotalSolutions, LuckScore } from '../utils/analysisUtils';
+import { WordLength } from '../utils/wordUtils';
 
 interface Props {
     guesses: string[];
     solution: string;
+    wordLength: WordLength;
     onBack: () => void;
 }
 
-const Analysis: React.FC<Props> = ({ guesses, solution, onBack }) => {
+const Analysis: React.FC<Props> = ({ guesses, solution, wordLength, onBack }) => {
     const analysisResults = useMemo(() => {
-        return filterPossibleWords(guesses, solution);
-    }, [guesses, solution]);
+        return filterPossibleWords(guesses, solution, wordLength);
+    }, [guesses, solution, wordLength]);
 
     const stillPossible = useMemo(() => {
-        return guessWasStillPossible(guesses, solution);
-    }, [guesses, solution]);
+        return guessWasStillPossible(guesses, solution, wordLength);
+    }, [guesses, solution, wordLength]);
 
     const [luckResults, setLuckResults] = useState<LuckScore[]>([]);
     const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
@@ -28,11 +30,9 @@ const Analysis: React.FC<Props> = ({ guesses, solution, onBack }) => {
     const getSortedWordList = (i: number, remaining: string[]) => {
         const cached = wordListCache.get(i);
         if (cached) return cached;
+        const counts = countRemainingForPool(remaining, solution);
         const computed = remaining
-            .map((word) => ({
-                word,
-                count: countRemainingForGuess(word, solution, remaining),
-            }))
+            .map((word, idx) => ({ word, count: counts[idx] }))
             .sort((a, b) => a.count - b.count);
         wordListCache.set(i, computed);
         return computed;
@@ -57,19 +57,20 @@ const Analysis: React.FC<Props> = ({ guesses, solution, onBack }) => {
     useEffect(() => {
         // Calculate luck in a timeout to allow UI to render first
         const timer = setTimeout(() => {
-            const results = calculateLuck(guesses, solution);
+            const results = calculateLuck(guesses, solution, wordLength);
             setLuckResults(results);
         }, 100);
         return () => clearTimeout(timer);
-    }, [guesses, solution]);
+    }, [guesses, solution, wordLength]);
 
     return (
-        <div className="analysis-container">
+        <div className={`analysis-container len-${wordLength}`}>
             <div className="analysis-header">
                 <button className="back-button" onClick={onBack}>
                     ← Back to Game
                 </button>
                 <h2>Game Analysis</h2>
+                <span className="analysis-mode">{wordLength} letters</span>
             </div>
 
             <div className="analysis-content">
@@ -84,7 +85,7 @@ const Analysis: React.FC<Props> = ({ guesses, solution, onBack }) => {
                     <tbody>
                         <tr>
                             <td><em>Start</em></td>
-                            <td>{TOTAL_SOLUTIONS}</td>
+                            <td>{getTotalSolutions(wordLength)}</td>
                             <td></td>
                         </tr>
                         {guesses.map((guess, i) => {
@@ -93,12 +94,12 @@ const Analysis: React.FC<Props> = ({ guesses, solution, onBack }) => {
                             const isExpandable = remaining.length >= 20 && guess !== solution;
                             const showList = (remaining.length < 20 && guess !== solution) || expandedRows.has(i);
                             const wasPossible = stillPossible[i];
-                            const notInAnswerList = !isPossibleSolutionWord(guess);
+                            const notInAnswerList = !isPossibleSolutionWord(guess, wordLength);
                             const nextGuess = guesses[i + 1]?.toLowerCase();
                             return (
                                 <tr key={i}>
                                     <td>
-                                        <Row guess={guess} solution={solution} isRevealed={false} />
+                                        <Row guess={guess} solution={solution} isRevealed={false} wordLength={wordLength} />
                                     </td>
                                     <td>
                                         {isExpandable ? (

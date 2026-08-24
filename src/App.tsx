@@ -1,111 +1,31 @@
-import React, { useEffect, useState } from 'react';
-import Grid from './components/Grid';
-import Keyboard from './components/Keyboard';
-import Analysis from './components/Analysis';
-import { useGameState } from './hooks/useGameState';
-import confetti from 'canvas-confetti';
+import React, { useState } from 'react';
+import Game from './components/Game';
+import { WordLength, WORD_LENGTHS } from './utils/wordUtils';
+
+const LENGTH_KEY = 'wordle-word-length';
+
+const parseWordLength = (value: string | null): WordLength | null => {
+    const parsed = parseInt(value ?? '', 10);
+    return WORD_LENGTHS.includes(parsed as WordLength) ? (parsed as WordLength) : null;
+};
+
+const getInitialWordLength = (): WordLength => {
+    const fromUrl = parseWordLength(new URLSearchParams(window.location.search).get('length'));
+    if (fromUrl) return fromUrl;
+    return parseWordLength(localStorage.getItem(LENGTH_KEY)) ?? 5;
+};
 
 const App: React.FC = () => {
-    const [view, setView] = useState<'game' | 'analysis'>('game');
-    const {
-        guesses,
-        currentGuess,
-        solution,
-        isGameOver,
-        isWon,
-        message,
-        onChar,
-        onDelete,
-        onEnter,
-        getStatuses,
-    } = useGameState();
+    const [wordLength, setWordLength] = useState<WordLength>(getInitialWordLength);
 
-    useEffect(() => {
-        if (isWon) {
-            confetti({
-                particleCount: 150,
-                spread: 70,
-                origin: { y: 0.6 },
-                colors: ['#6aaa64', '#c9b458', '#787c7e']
-            });
-        }
-    }, [isWon]);
+    const selectLength = (length: WordLength) => {
+        localStorage.setItem(LENGTH_KEY, String(length));
+        setWordLength(length);
+    };
 
-    useEffect(() => {
-        if (view !== 'game') return;
-
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.ctrlKey || e.metaKey || e.altKey) return;
-
-            if (e.key === 'Enter') {
-                onEnter();
-            } else if (e.key === 'Backspace') {
-                onDelete();
-            } else if (e.key === ' ') {
-                e.preventDefault();
-                onChar(' ');
-            } else if (e.key.length === 1 && e.key.match(/[a-z]/i)) {
-                onChar(e.key);
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [onEnter, onDelete, onChar, view]);
-
-    if (view === 'analysis') {
-        return (
-            <Analysis
-                guesses={guesses}
-                solution={solution}
-                onBack={() => setView('game')}
-            />
-        );
-    }
-
-    return (
-        <>
-            <header>
-                <h1>Wordle</h1>
-            </header>
-
-            <div className="game-container">
-                <div style={{ minHeight: '40px', textAlign: 'center', paddingTop: '10px' }}>
-                    {message && (
-                        <div style={{
-                            background: 'white',
-                            color: 'black',
-                            padding: '8px 16px',
-                            borderRadius: '4px',
-                            display: 'inline-block',
-                            fontWeight: 'bold',
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
-                            zIndex: 100
-                        }}>
-                            {message}
-                        </div>
-                    )}
-                    {isGameOver && !message && (
-                        <button
-                            className="analysis-link"
-                            onClick={() => setView('analysis')}
-                        >
-                            View Game Analysis →
-                        </button>
-                    )}
-                </div>
-
-                <Grid guesses={guesses} currentGuess={currentGuess} solution={solution} />
-
-                <Keyboard
-                    onChar={onChar}
-                    onDelete={onDelete}
-                    onEnter={onEnter}
-                    statuses={getStatuses()}
-                />
-            </div>
-        </>
-    );
+    // Keying on wordLength remounts the game, so each length loads its own
+    // daily puzzle and its own saved progress.
+    return <Game key={wordLength} wordLength={wordLength} onSelectLength={selectLength} />;
 };
 
 export default App;

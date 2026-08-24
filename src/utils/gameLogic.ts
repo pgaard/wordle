@@ -3,13 +3,15 @@ export type LetterState = 'correct' | 'present' | 'absent' | 'empty';
 /**
  * Calculates the state of each letter in a guess relative to the solution.
  * Handles duplicate letters correctly (Wordle rules).
+ * Works for any word length (5- and 6-letter games share this).
  */
 export const getGuessStatuses = (guess: string, solution: string): LetterState[] => {
     const splitSolution = solution.toLowerCase().split('');
     const splitGuess = guess.toLowerCase().split('');
+    const length = splitGuess.length;
 
-    const statuses: LetterState[] = Array(5).fill('absent');
-    const solutionMatched = Array(5).fill(false);
+    const statuses: LetterState[] = Array(length).fill('absent');
+    const solutionMatched = Array(splitSolution.length).fill(false);
 
     // First pass: Find all correct matches
     splitGuess.forEach((letter, i) => {
